@@ -4,6 +4,7 @@ import logging
 import os
 
 from lib.get_input import get_input
+from lib.get_input import logout as logout_session
 
 LOG_FORMAT = "%(message)s"
 
@@ -20,6 +21,10 @@ def main(year: int, day: int, puzzle: int, test=False) -> str:
     return solution(data_input)
 
 
+def logout() -> None:
+    logout_session()
+
+
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument("year", type=int)
@@ -28,10 +33,17 @@ if __name__ == "__main__":
     args.add_argument("--test", "-t", action="store_true")
     args.add_argument("--debug", "-d", action="store_true")
     args.add_argument("--submit", "-s", action="store_true")
+    args.add_argument("--logout", action="store_true")
     args = args.parse_args()
+
+    if args.logout:
+        logout()
+        exit(0)
+
     if args.debug:
         logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
     else:
         logging.basicConfig(level=logging.WARNING, format=LOG_FORMAT)
+
     result = main(args.year, args.day, args.puzzle, args.test)
     print(result)

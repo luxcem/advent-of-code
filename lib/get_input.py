@@ -8,3 +8,12 @@ def get_input(year: int, day: int, puzzle: int) -> str:
     cookies = {"session": session}
     response = requests.get(url, cookies=cookies)
     return response.text.strip()
+
+
+def logout() -> None:
+    url = "https://adventofcode.com/2023/auth/logout"
+    with open("session.txt") as f:
+        session = f.read().strip()
+    cookies = {"session": session}
+    response = requests.get(url, cookies=cookies)
+    return response.text.strip()
