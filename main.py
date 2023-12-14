@@ -3,6 +3,7 @@ import importlib
 import logging
 import os
 
+import notebook_loader
 from lib.get_input import get_input
 from lib.get_input import logout as logout_session
 

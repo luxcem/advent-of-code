@@ -1,26 +1,25 @@
 import logging
 import re
 
-test_input = """"""
+import numpy as np
+
+test_input = """
+"""
 
 logger = logging.getLogger(__name__)
 
 LINE_REGEX = re.compile(r"")
 
 
-def part1(text_input: str) -> str:
-    result = 0
+def part1(text_input: str) -> int | str:
     for line in text_input.strip().split("\n"):
-        matches = re.match(LINE_REGEX, line)
         pass
 
-    return str(result)
+    return 0
 
 
-def part2(text_input: str) -> str:
-    result = 0
+def part2(text_input: str) -> int | str:
     for line in text_input.strip().split("\n"):
-        matches = re.match(LINE_REGEX, line)
         pass
 
-    return str(result)
+    return 0
