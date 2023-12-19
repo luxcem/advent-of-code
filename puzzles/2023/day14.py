@@ -36,10 +36,9 @@ def tilt_north(grid):
 
 
 def total_grid(grid):
-    total = 0
-    for y in range(len(grid)):
-        total += np.count_nonzero(grid[y] == "O") * (len(grid) - y)
-    return total
+    return sum(
+        np.count_nonzero(grid[y] == "O") * (len(grid) - y) for y in range(len(grid))
+    )
 
 
 def part1(text_input: str) -> int | str:
@@ -53,11 +52,18 @@ def part1(text_input: str) -> int | str:
 
 memory = {}
 values = []
+
+# Convert grid to string (as a hash for memory)
 grid_string = lambda g: "\n".join("".join(l) for l in g)
+# Convert string to grid
+string_grid = lambda s: np.array(list(map(list, s.split("\n"))))
 
 
-def tilt_cycle(grid, step: int):
-    """Tilt N, W, S, E"""
+def tilt_cycle(grid, step: int) -> tuple[int, int]:
+    """
+    Tilt N, W, S, E
+    return cycle_end, cycle_start
+    """
     gs = grid_string(grid)
     if gs in memory:
         logger.info(f"Found a loop at step {step}")
@@ -68,7 +74,7 @@ def tilt_cycle(grid, step: int):
         grid = np.rot90(grid, k=3)
 
     memory[gs] = step
-    values.append(grid.copy())
+    values.append(gs)
     return (0, 0)
 
 
@@ -81,6 +87,6 @@ def part2(text_input: str) -> int | str:
         if cycle_end != 0:
             break
     logger.info(f"Cycle detected from {cycle_start} to {cycle_end}")
-    loop_length = cycle_end - cycle_start
-    target = cycle_start + ((n - cycle_start) % loop_length) - 1
-    return total_grid(values[target])
+    cycle_len = cycle_end - cycle_start
+    target = cycle_start + ((n - cycle_start) % cycle_len)
+    return total_grid(string_grid(values[target]))

@@ -16,9 +16,6 @@ memory = {}
 
 def process_line(line: str, counts: tuple[int, ...], n=0) -> int:
     """Process a line."""
-    logger.info(f"Processing line: {line} {counts}")
-    global cache_miss, cache_hit
-
     if not counts:
         return "#" not in line
     if not line:
@@ -62,7 +59,6 @@ def part2(text_input: str) -> str:
     for line in lines:
         pattern = "?".join([line[0]] * 5)
         counts = tuple(line[1] * 5)
-        int_result = process_line(pattern, counts)
-        logger.info(f"Result for {line}: {int_result}")
-        result += int_result
+        count = process_line(pattern, counts)
+        result += count
     return str(result)

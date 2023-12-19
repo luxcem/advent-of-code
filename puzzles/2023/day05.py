@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from pprint import pprint
 
@@ -40,143 +41,77 @@ humidity-to-location map:
 logger = logging.getLogger(__name__)
 
 
-def map_interval(source, mapping, offset):
+def map_interval(interval, destination, source, length) -> tuple[list, list]:
     """Map interval.
 
-    Given a starting interval [a, b], a starting interval [s1, s2], offset o,
-    return the resulting intervals after mapping.
-
-    if b < s1 or a > s2 then return [a, b]
-    if a < s1 and b > s2 then return [a, s1 - 1], [s1 + o, b + o]
-    if a > s1 and b < s2 then return [s1 + o, s2 + o]
-    if a > s1 and b > s2 then return [a + o, s2 + o], [s2 + 1, b]
+    Given a starting interval [a, b], a source, destination and length. return
+    [inside, outside] where inside is a list of intervals that are inside the
+    source interval
     """
-    a, b = source
-    s1, s2 = mapping
-    o = offset
-    if b < s1 or a > s2:
-        return [[a, b]]
-    elif a < s1 and b > s2:
-        return [[a, s1 - 1], [s1 + o, b + o]]
-    elif a > s1 and b < s2:
-        return [[s1 + o, s2 + o]]
-    elif a > s1 and b > s2:
-        return [[a + o, s2 + o], [s2 + 1, b]]
+    a, b = interval
+    overlap_start = max(a, source)
+    overlap_end = min(b, source + length)
+    if overlap_start < overlap_end:
+        # Overlap
+        inside = [
+            (destination + overlap_start - source, destination + overlap_end - source)
+        ]
+        outside = []
+        if a < overlap_start:
+            outside.append((a, overlap_start))
+        if overlap_end < b:
+            outside.append((overlap_end, b))
+        return inside, outside
+    else:
+        return [], []
 
 
-"""
-OLD
-def part1(text_input: str) -> str:
-    result = 0
-    lines = text_input.strip().split("\n")
-    seeds = [int(x) for x in lines[0].split(":")[1].strip().split(" ")]
-    ranges = {}
-    max_seed = max(seeds)
-    i = 1
-    while i < len(lines):
-        line = lines[i]
-        if line == "":
-            i += 1
-            continue
-
-        if line[-1] == ":":
-            key = line.split()[0].strip()
-            ranges[key] = []
-            i += 1
-            while i < len(lines) and lines[i] != "":
-                destination_start, source_start, range_length = (
-                    lines[i].strip().split(" ")
-                )
-                # Append to ranges: (source_start, source_end, offset)
-                ranges[key].append(
-                    (
-                        int(source_start),
-                        int(source_start) + int(range_length),
-                        int(destination_start) - int(source_start),
-                    )
-                )
-                i += 1
-        i += 1
-
-    logger.info(f"ranges: {ranges}")
-    minimum_location = 99_999_999_999
-    for seed in seeds:
-        n_input = seed
-        for key in ranges:
-            logger.info(f"input: {n_input}, key: {key}")
-            for source_start, source_end, offset in ranges[key]:
-                if source_start <= n_input < source_end:
-                    n_input += offset
-                    break
-            if key == "humidity-to-location":
-                minimum_location = min(minimum_location, n_input)
-                break
-
-    return str(minimum_location)
-
-
-def part2(text_input: str) -> str:
-    result = 0
+def part1(text_input: str) -> int:
     lines = text_input.strip().split("\n\n")
-    seeds = lines.pop(0)
-    seeds = [int(seed) for seed in seeds.split(":")[1].split()]
-    # Group seeds 2 by 2
-    seeds = [(seeds[i], seeds[i] + seeds[i + 1] - 1) for i in range(0, len(seeds), 2)]
-    maps_name = [line.split(":")[0].strip() for line in lines]
-    maps = [line.split(":")[1].strip().split("\n") for line in lines]
-    # Seeds is a list of interval eg: [(79, 93), (55, 68)]
-    # For each steps we will match seeds to the corresponding destination interval.
-    minimum_location = min([seed[0] for seed in seeds])
-    for i, ranges in enumerate(maps):
-        print(f"\nStep {i}: {maps_name[i]}")
-        # print(f"Seeds: {seeds}")
-        # list of transformations for this step
-        ranges = [list(map(int, line.split())) for line in ranges]
+    seeds = [int(x) for x in lines.pop(0).split(":")[1].strip().split(" ")]
+    # ranges = {}
+    # max_seed = max(seeds)
+    logger.info(f"Seeds: {seeds}")
+    for group in lines:
+        group_name = group.split("\n")[0]
+        logger.info(f"{group_name}")
         new_seeds = []
         for seed in seeds:
-            intersections = []
-            for range_ in ranges:
-                # For each transformation we will match the list of seeds to the
-                # corresponding destination interval.
-                dest, source, length = range_
-                source_interval = (source, source + length)
-                offset = dest - source
-                # print(f"{source_interval} -> {dest, dest + length}")
-                # print(dest, source, length)
-                # Exemple (98, 100) -> (50, 52)
-                if seed[0] <= source_interval[1] and seed[1] >= source_interval[0]:
-                    # Seed is in the source interval
-                    # Intersecting interval with source
-                    intersecting_interval = (
-                        max(seed[0], source_interval[0]),
-                        min(seed[1], source_interval[1]),
-                    )
-                    if intersecting_interval[0] > seed[0]:
-                        # Seed is not at the beginning of the source interval
-                        intersections.append((seed[0], intersecting_interval[0]))
-                    if intersecting_interval[1] < seed[1]:
-                        # Seed is not at the end of the source interval
-                        intersections.append((intersecting_interval[1], seed[1]))
-                    intersections.append(
-                        (
-                            intersecting_interval[0] + offset,
-                            intersecting_interval[1] + offset,
-                        )
-                    )
-                    if intersecting_interval[0] + offset == 0:
-                        print(dest, source, length)
-                        print(f"Seed {seed} is at the beginning of the interval")
-                    # print(
-                    #     f"Mapping {seed} to {source_interval} -> {source_interval[0] + offset, source_interval[1] + offset}"
-                    # )
-                    # print(f"Intersections: {intersections}")
+            new_seed = seed
+            for mappings in group.split("\n")[1:]:
+                destination, source, length = map(int, mappings.split())
+                if seed >= source and seed < source + length:
+                    new_seed += destination - source
+                    break
+            new_seeds.append(new_seed)
+        seeds = new_seeds
+        logger.info(f"Seeds: {new_seeds}")
+    return min(seeds)
 
-            if intersections:
-                new_seeds.extend(intersections)
+
+def part2(text_input: str) -> int:
+    lines = text_input.strip().split("\n\n")
+    seeds = [int(x) for x in lines.pop(0).split(":")[1].strip().split(" ")]
+    # Convert [a, b, c, d, ...] into [(a, a+b), (c, c+d), ...]
+    seeds = [(seeds[i], seeds[i] + seeds[i + 1] - 1) for i in range(0, len(seeds), 2)]
+    logger.info(f"Seeds: {seeds}")
+    for group in lines:
+        group_name = group.split("\n")[0]
+        logger.info(f"{group_name}")
+
+        new_seeds = []
+        while seeds:
+            seed = seeds.pop()
+            # Split interval to avoid overlapping
+            for mappings in group.split("\n")[1:]:
+                destination, source, length = map(int, mappings.split())
+                # Check overlap
+                inside, outside = map_interval(seed, destination, source, length)
+                new_seeds.extend(inside)
+                seeds.extend(outside)
+                if inside:
+                    break
             else:
                 new_seeds.append(seed)
-        # print(f"New seeds: {new_seeds}")
         seeds = new_seeds
-    new_min = min([seed[0] for seed in seeds])
-    return str(min(new_min, minimum_location))
-"""
+    return min(seeds)[0]

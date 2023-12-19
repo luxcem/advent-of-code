@@ -50,3 +50,22 @@ def bfs(start, connections, end=None):
             queue.append((neighbor, distance + 1))
 
     return visited, distances
+
+
+class BinNode:
+    def __init__(self, name: str):
+        self.name: str = name
+        self.left: BinNode | None = None
+        self.right: BinNode | None = None
+
+    def __str__(self):
+        return self.name
+
+
+def print_bin_tree(node: BinNode | None, level: int = 0, direction: str = "root"):
+    if node is None:
+        return
+    dire = "(L)" if direction == "left" else "(R)" if direction == "right" else ""
+    print(f"{'  ' * level}{dire} {node}")
+    print_bin_tree(node.left, level + 1, "left")
+    print_bin_tree(node.right, level + 1, "right")

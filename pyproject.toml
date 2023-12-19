@@ -14,6 +14,8 @@ numpy = "^1.26.2"
 pandas = "^2.1.4"
 ipdb = "^0.13.13"
 nbformat = "^5.9.2"
+shapely = "^2.0.2"
+networkx = "^3.2.1"
 
 
 [build-system]
