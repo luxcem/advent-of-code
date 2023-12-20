@@ -1,3 +1,4 @@
 session.txt
 __pycache__
 *.py[co]
+.ipynb_checkpoints/
