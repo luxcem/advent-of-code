@@ -1,3 +1,8 @@
+from typing import Any
+
+import numpy as np
+
+
 def print_grid(grid):
     """Print a 2d grid."""
     # Use the largest cell as cell width
@@ -69,3 +74,35 @@ def print_bin_tree(node: BinNode | None, level: int = 0, direction: str = "root"
     print(f"{'  ' * level}{dire} {node}")
     print_bin_tree(node.left, level + 1, "left")
     print_bin_tree(node.right, level + 1, "right")
+
+
+def render_grid(grid, size=5):
+    import pygame
+
+    # Calculate grid dimensions
+    rows, cols = grid.shape
+    screen_width = cols * size
+    screen_height = rows * size
+
+    pygame.init()
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    clock = pygame.time.Clock()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+
+        screen.fill((255, 255, 255))  # Fill the screen with white
+
+        # Render the grid based on boolean values
+        for row in range(rows):
+            for col in range(cols):
+                color = (
+                    (0, 0, 0) if grid[row][col] else (255, 255, 255)
+                )  # Black for True, White for False
+                pygame.draw.rect(screen, color, (col * size, row * size, size, size))
+
+        pygame.display.flip()
+        clock.tick(60)
